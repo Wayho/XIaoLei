@@ -1,6 +1,8 @@
 # XiaoLei
 
-一个简单的使用 ChatterBot和Flask 的 LeanCloud 应用,运行于LeanCloud 的 python3环境。
+包含两个应用:Xiaolei_Leancloud和XiaoLei_MiniApp。
+
+Xiaolei_Leancloud为XiaoLei_MiniApp提供云服务,Xiaolei_Leancloud可以独立以web方式运行
 
 ## XiaoLei_LeanCloud
 
