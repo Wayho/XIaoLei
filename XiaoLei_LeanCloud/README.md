@@ -13,7 +13,9 @@
 3.python train.py
 
 ## 相关文档
-
+* [flask-chatterbot](https://github.com/chamkank/flask-chatterbot)
+* [ChatterBot](https://github.com/gunthercox/ChatterBot)
+* [chatterbot-corpus](https://github.com/gunthercox/chatterbot-corpus)
 * [LeanEngine 指南](https://leancloud.cn/docs/leanengine_guide.html)
 * [Python SDK 指南](https://leancloud.cn/docs/python_guide.html)
 * [Python SDK API](https://leancloud.cn/docs/api/python/index.html)
