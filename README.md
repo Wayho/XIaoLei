@@ -2,6 +2,12 @@
 
 包含两个应用:Xiaolei_Leancloud和XiaoLei_MiniApp。
 
+包含两个工具:
+
+praseword.py:把txt转yml
+
+train.py:生成db.sqlite3
+
 Xiaolei_Leancloud为XiaoLei_MiniApp提供云服务,Xiaolei_Leancloud可以独立以web方式运行
 
 ## XiaoLei_LeanCloud
