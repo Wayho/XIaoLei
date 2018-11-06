@@ -1,5 +1,6 @@
 # XiaoLei
 
+## 小程序版
 包含两个应用:
 * Xiaolei_Leancloud
 * XiaoLei_MiniApp
@@ -37,6 +38,9 @@ XiaoLei_Corpus和PowerProject_LeanCloud中的praseword.py是一样的
 praseword.py 是在云端执行的
 
 ##################################################
+# XiaoLei
+
+## 公众号版
 
 ## BaiduBaike_LeanCloud
 
