@@ -46,7 +46,7 @@ praseword.py 是在云端执行的
 
 依托百度百科,从一个条目(节点)开始,爬取关联节点的标题和内容,并存储于LeanCloud中
 
-## ssjk_robot_Python
+## ssjk_robot_LeanCloud
 
 SSJK回复机器人
 
