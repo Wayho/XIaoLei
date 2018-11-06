@@ -1,0 +1,3 @@
+systemDependencies:
+  - fonts-wqy
+  - phantomjs

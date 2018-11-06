@@ -1,0 +1,69 @@
+# BaiduBaike
+
+依托百度百科,从一个条目(节点)开始,爬取关联节点的标题和内容,并存储于LeanCloud中
+
+## htmlbody.js
+
+* 专门用于模拟浏览器的运行JS生成的页面HTML,只取<body>部分,保存在body.html
+* 命令行:phantomjs htmlbody.js 区域变电站
+
+## baidubaike.py
+通过 htmlbody.js 生成的body.html,解析各个HTML元素:节点名,节点内容,关联节点表
+* Title() 节点名
+* Content() 节点内容
+* Content2() 节点内容(定义)
+* Links 关联节点表
+
+## classbaike.py
+
+对Baike数据库执行操作的对应类
+
+## cloud.py
+
+执行爬取逻辑
+
+```
+@engine.define( 'baike' )
+#以Baike库中未展开的节点开始执行展开,获取百度百科中的关联节点
+def baike():
+	sTitle = '变电站'
+	while(sTitle):
+		sTitle = BAIKE_CLASS.Find_Not_Expand()
+		print ('baike',sTitle)
+		if(sTitle):
+			shellbaike(sTitle)
+	print('************ End of Expand **************')
+	return True
+```
+
+```
+#{'title':'区域变电站'}
+@engine.define( 'shellbaike' )
+#title:节点名
+#按节点名执行模拟浏览器的JS运行生成关联节点,并通过baidubaike.Links()得到关联节点
+def shellbaike(title):
+	OutputShell('phantomjs htmlbody.js '+title)
+	time.sleep(5)
+	sContent = baidubaike.Content()
+	if('' == sContent ):
+		sContent = baidubaike.Content2()
+	aLinks = baidubaike.Links()
+	print(type(aLinks),len(aLinks),aLinks)
+	for Title_link in aLinks:
+		BAIKE_CLASS.Add(Title_link)
+	BAIKE_CLASS.Update_Content(title,sContent,True)
+	time.sleep(5)
+	return True
+```
+
+## 相关文档
+
+* [phantomjs in LeanEngine](https://leancloud.cn/docs/leanengine_webhosting_guide-python.html#hash-1294723055)
+* [phantomjs](http://phantomjs.org)
+* [LeanEngine 指南](https://leancloud.cn/docs/leanengine_guide.html)
+* [Python SDK 指南](https://leancloud.cn/docs/python_guide.html)
+* [Python SDK API](https://leancloud.cn/docs/api/python/index.html)
+* [命令行工具详解](https://leancloud.cn/docs/cloud_code_commandline.html)
+* [LeanEngine FAQ](https://leancloud.cn/docs/cloud_code_faq.html)
+
+
