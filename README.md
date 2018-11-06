@@ -1,14 +1,14 @@
 # XiaoLei
 
-包含两个应用:Xiaolei_Leancloud和XiaoLei_MiniApp。
+包含两个应用:
+* Xiaolei_Leancloud
+* XiaoLei_MiniApp
+Xiaolei_Leancloud为XiaoLei_MiniApp提供云服务,Xiaolei_Leancloud可以独立以web方式运行
 
 包含两个工具:
 
-praseword.py:把txt转yml
-
-train.py:生成db.sqlite3
-
-Xiaolei_Leancloud为XiaoLei_MiniApp提供云服务,Xiaolei_Leancloud可以独立以web方式运行
+* praseword.py:把txt转yml
+* train.py:生成db.sqlite3
 
 ## XiaoLei_LeanCloud
 
@@ -35,6 +35,25 @@ XiaoLei_Corpus和PowerProject_LeanCloud中的praseword.py是一样的
 在LeanCloud 中存储<电力工程基本术语标准20130604>,也可转为chatterbot-corpus的yml,运行于LeanCloud 的 python2环境。
 
 praseword.py 是在云端执行的
+
+##################################################
+
+## BaiduBaike_LeanCloud
+
+依托百度百科,从一个条目(节点)开始,爬取关联节点的标题和内容,并存储于LeanCloud中
+
+## ssjk_robot_Python
+
+SSJK回复机器人
+
+使用chatterbot的回复机器人,数据来源于XiaoLei_Corpus.
+
+在微信号向公众号端发送消息后,直接转发到LeanCloud端(通过公众号后台配置),
+
+即:使用LeanCloud云引擎作为微信公众号的回调服务器,Lean马上回复空串,避免耗时
+
+在Lean获得回复字串后,直接通过WeChatClient.message.send_text()发送迟到的消息
+
 
 ## 相关文档
 * [flask-chatterbot](https://github.com/chamkank/flask-chatterbot)
