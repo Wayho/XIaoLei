@@ -7,13 +7,6 @@
 * 专门用于模拟浏览器的运行JS生成的页面HTML,只取<body>部分,保存在body.html
 * 命令行:phantomjs htmlbody.js 区域变电站
 
-## baidubaike.py
-通过 htmlbody.js 生成的body.html,解析各个HTML元素:节点名,节点内容,关联节点表
-* Title() 节点名
-* Content() 节点内容
-* Content2() 节点内容(定义)
-* Links 关联节点表
-
 ```
 function html_body(url){
     console.log('html_body');
@@ -55,6 +48,13 @@ else {
     html_body(url + encodeURIComponent(sTitle))
 }
 ```
+
+## baidubaike.py
+通过 htmlbody.js 生成的body.html,解析各个HTML元素:节点名,节点内容,关联节点表
+* Title() 节点名
+* Content() 节点内容
+* Content2() 节点内容(定义)
+* Links 关联节点表
 
 ## classbaike.py
 
