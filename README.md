@@ -58,6 +58,10 @@ SSJK回复机器人
 
 在Lean获得回复字串后,直接通过WeChatClient.message.send_text()发送迟到的消息
 
+##################################################
+
+## 小程序机器人客服聊天 .zip
+
 
 ## 相关文档
 * [flask-chatterbot](https://github.com/chamkank/flask-chatterbot)
