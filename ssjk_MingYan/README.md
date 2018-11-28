@@ -1,12 +1,12 @@
-# SSJK回复机器人
-
-使用chatterbot的回复机器人,数据来源于XiaoLei_Corpus.
+# SSJK回复名言
 
 在微信号向公众号端发送消息后,直接转发到LeanCloud端(通过公众号后台配置),
 
-即:使用LeanCloud云引擎作为微信公众号的回调服务器,Lean马上回复空串,避免耗时
+即:使用LeanCloud云引擎作为微信公众号的回调服务器,Lean马上回复
 
-在Lean获得回复字串后,直接通过WeChatClient.message.send_text()发送迟到的消息
+定时通过WeChatClient.message.send_text()发送的消息
+
+juzimi.py:采集juzimi的名言,保存到Class MingJu
 
 ```
 #使用机器人回复,有个比较耗时的检索任务在这里运行
@@ -19,17 +19,26 @@ def message_robot(sFromUserName, sContent):
 
 
 ```
-        msg = parse_message(request.data)
-		print(">>", str(msg))
-		if msg.type == 'text':
-			reply = create_reply('', msg)
-			message = xmltodict.parse(to_text(request.data))['xml']
-			#MESSAGEROBOT.Reset(message['FromUserName'], msg.content)
-			_thread.start_new_thread(message_robot, (message['FromUserName'], msg.content,))
-		else:
-			reply = create_reply('抱歉,仅支持文本', msg)
-		#print(type(reply.render()))
-		return reply.render()
+        	message = xmltodict.parse(to_text(request.data))['xml']
+		sOpenid = message['FromUserName']
+		sMsgType = message['MsgType']
+		print(">>", message)
+		if('text' == sMsgType):
+			if('0'== message['Content']):
+				send_message(sOpenid, '您好,谢谢回复!\r\n您将在每天早中晚分别收到三句名人名言,如需即时收取名人名言,只需向我回复任意消息即可。')
+			send_random_message(sOpenid)
+		if ('image' == sMsgType or 'voice' == sMsgType):
+			#send_message(sOpenid, '您好,谢谢回复!\r\n您将在每天早中晚分别收到三句名人名言,如需即时收取名人名言,只需向我回复任意消息即可。')
+			send_random_message(sOpenid)
+		elif('event' == sMsgType ):
+			if( 'subscribe'== message['Event']):
+				send_message(sOpenid, '您好,欢迎关注!\r\n每天早中晚分别自动送您三句名人名言,请回复0以便发送给您(不回复不发送)。')
+				send_random_message(sOpenid)
+				send_random_message(sOpenid)
+				USERINFO_CLASS.Add(sOpenid)
+			elif ('unsubscribe' == message['Event']):
+				print(sOpenid,' ***** unsubscribe')
+		return ''
 ```
 
 
