@@ -1,0 +1,371 @@
+# coding: utf-8
+#-*-encoding:utf8 -*-
+# url = 'http://www.xicidaili.com/nn/1'
+# 获取代理IP和Port，置于列表
+# 每次取列表中最好的20个，依次循环访问，同时置不能访问数 Bad
+# 设置目标服务器列表
+### 待以后再说：每次目标地址时，选服务器列表中最好的2/3，循环访问地址列表，同时置不能访问数 Bad
+# 置Head头信息列表，避免被封
+# 每次目标地址时，从Head头信息列表随机选取Head信息进行 requests.get,(模拟不同的浏览器)
+
+#1xx 开头的http状态码,表示临时响应并需要请求者继续执行操作的状态代码。
+#100（继续） 请求者应当继续提出请求。 服务器返回此代码表示已收到请求的第一部分，正在等待其余部分。
+#101（切换协议） 请求者已要求服务器切换协议，服务器已确认并准备切换。
+
+#2xx 开头的http状态码,表示请求成功
+#200 成功处理了请求，一般情况下都是返回此状态码；
+#201 请求成功并且服务器创建了新的资源。
+#202 接受请求但没创建资源；
+#203 返回另一资源的请求；
+#204 服务器成功处理了请求，但没有返回任何内容；
+#205 服务器成功处理了请求，但没有返回任何内容；
+#206 处理部分请求；
+
+#3xx（重定向） 重定向代码，也是常见的代码
+#300（多种选择）  针对请求，服务器可执行多种操作。 服务器可根据请求者( user agent) 选择一项操作，或提供操作列表供请求者选择。
+#301（永久移动）  请求的网页已永久移动到新位置。 服务器返回此响应（对GET或HEAD请求的响应）时，会自动将请求者转到新位置。
+#302（临时移动）  服务器目前从不同位置的网页响应请求，但请求者应继续使用原有位置来进行以后的请求。
+#303（查看其他位置） 请求者应当对不同的位置使用单独的GET请求来检索响应时，服务器返回此代码。
+#304（未修改） 自从上次请求后，请求的网页未修改过。 服务器返回此响应时，不会返回网页内容。
+#305（使用代理） 请求者只能使用代理访问请求的网页。 如果服务器返回此响应，还表示请求者应使用代理。
+#307（临时重定向）  服务器目前从不同位置的网页响应请求，但请求者应继续使用原有位置来进行以后的请求。
+
+#4xx 开头的http状态码表示请求出错
+#400 服务器不理解请求的语法。
+#401 请求要求身份验证。 对于需要登录的网页，服务器可能返回此响应。
+#403 服务器拒绝请求。
+#404 服务器找不到请求的网页。
+#405 禁用请求中指定的方法。
+#406 无法使用请求的内容特性响应请求的网页。
+#407 此状态代码与401 类似，但指定请求者应当授权使用代理。
+#408 服务器等候请求时发生超时。
+#409 服务器在完成请求时发生冲突。 服务器必须在响应中包含有关冲突的信息。
+#410 如果请求的资源已永久删除，服务器就会返回此响应。
+#411 服务器不接受不含有效内容长度标头字段的请求。
+#412 服务器未满足请求者在请求中设置的其中一个前提条件。
+#413 服务器无法处理请求，因为请求实体过大，超出服务器的处理能力。
+#414 请求的URI（通常为网址）过长，服务器无法处理。
+#415 请求的格式不受请求页面的支持。
+#416 如果页面无法提供请求的范围，则服务器会返回此状态代码。
+#417 服务器未满足”期望”请求标头字段的要求。
+
+
+#5xx 开头状态码并不常见，但是我们应该知道
+#500（服务器内部错误）  服务器遇到错误，无法完成请求。
+#501（尚未实施） 服务器不具备完成请求的功能。 例如，服务器无法识别请求方法时可能会返回此代码。
+#502（错误网关） 服务器作为网关或代理，从上游服务器收到无效响应。
+#503（服务不可用） 服务器目前无法使用（由于超载或停机维护）。 通常，这只是暂时状态。
+#504（网关超时）  服务器作为网关或代理，但是没有及时从上游服务器收到请求。
+#505（HTTP版本不受支持） 服务器不支持请求中所用的HTTP协议版本。
+
+
+########### my import #############
+import requests
+from bs4 import BeautifulSoup
+import codecs
+
+import random
+import time
+from datetime import datetime, timedelta
+
+class Class_AgentPool():
+	def EngineStart( self ):
+		#准备页面展示数据
+		print( '*' * 40)
+		print( 'Call Class_AgentPool.EngineStart() at ', datetime.now())
+		print( '*' * 40)
+		if(0==len(self.PROXY_LIST)):
+			self.Set_PROXY_LIST()
+			self.Sort_PROXY()
+			self.Print_PROXY()
+		else:
+			print( 'Class_AgentPool.PROXY_LIST not empty, pass')
+		self.Set_USER_AGENT()
+
+
+	def Get_Html_String(self, url, Refefer, Uselast, index_PROXY_LIST, index_USER_AGENT):
+		# 调用时，请确保index_PROXY_LIST, index_USER_AGENT不会越界
+		# 可以用 .Get_Random_index_PROXY_LIST()和 Get_Random_index_USER_AGENT()确保不越界
+		# Uselast type:Bool, if True ,use last proxy and headers
+		# return HtmlStr
+		GetRet = self.Get_Html_String_Use_Proxy(url, Refefer, Uselast, index_PROXY_LIST, index_USER_AGENT)
+		if("OKGet"==GetRet.get('status')):
+			time.sleep( random.randint( 2, 3 ) )
+			return {'status': GetRet.get('status'), 'text': GetRet.get('text'), 'index_p':GetRet.get('index_p'), 'index_u':GetRet.get('index_u')}
+		else:
+			time.sleep( random.randint( 2, 3 ) )
+			return {'status': GetRet.get('status'), 'text': "<HTML></HTML>", 'index_p':GetRet.get('index_p'), 'index_u':GetRet.get('index_u')}
+
+
+	# @engine.define( 'get_html_use_proxy' )
+	def Get_Html_String_Use_Proxy( self, url, Refefer, Uselast, index_p, index_u ):
+		#return: {'status':string,'text':<type 'unicode'>}
+		#ret = {'status':'OKGet','text':''}
+		if(Uselast):
+			proxy = self.Get_proxy(index_p)
+			headers = self.Get_headers( index_u, url, Refefer )
+		else:
+			index_p = self.Get_Random_index_PROXY_LIST()
+			proxy = self.Get_proxy( index_p )
+			index_u = self.Get_Random_index_USER_AGENT()
+			headers = self.Get_headers( index_u, url, Refefer )
+
+
+		##！！！必须在Get_proxy()后调用，确保可能的变化！！！
+		index_p = proxy.get( "index" )
+		proxies = proxy.get( "proxies" )
+		#print proxies, headers#, url, Refefer
+		#return {'status': 'OKGet', 'text': 'TEXT'}
+		starttime = time.time()
+		try:
+			response = requests.get(url, headers=headers, proxies=proxies, timeout=6.0)
+			#response.status_code		#200, 404, 301, 302, 500
+			endtime = time.time()
+			print( response.status_code)
+			self.Set_Bad_Of_PROXY( index_p, endtime - starttime )
+			if (200 == response.status_code):
+				ret = {'status': 'OKGet', 'text': response.text, 'index_p':index_p, 'index_u':index_u}
+			else:
+				ret = {'status': 'ERROR'+str( response.status_code ), 'text': '', 'index_p':index_p, 'index_u':index_u}
+		except (IOError) as err:
+			endtime = time.time()
+			print( "Timeout")
+			self.Set_Bad_Of_PROXY( index_p, (endtime - starttime)*30.0 )
+			ret = {'status':'TIMEOUT','text':'', 'index_p':index_p, 'index_u':index_u}
+		#print type( response.text )  # <type 'unicode'>
+		#print type( response.content )  # <type 'str'>
+		#print type(response.status_code),response.status_code	#<type 'int'>
+
+		return ret
+
+	def Get_Random_index_USER_AGENT(self):
+		return random.randint( 0, len( self.USER_AGENT ) )  #
+
+	def Get_Random_index_PROXY_LIST(self):
+		listrange = self.ActiveNum
+		if (len( self.PROXY_LIST ) < listrange):
+			listrange = len( self.PROXY_LIST )
+		idx = random.randint( 0, listrange )  # 注意：Set_Bad_Of_PROXY()后，idx与proxies不再对应！！！
+		return self.PROXY_LIST[idx].get("index")
+
+	############## private ################
+	def __init__(self):
+		self.PROXY_LIST = []
+		self.ActiveNum = 200	#最好的300
+		self.USER_AGENT= [	"Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.3427.400 QQBrowser/9.6.12088.400",
+				 "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36",
+				 "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0",
+				 "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:56.0) Gecko/20100101 Firefox/56.0",
+							  "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.103 Safari/537.36 Core/1.53.3427.400 QQBrowser/9.5.12088.300",
+				 "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36",
+				 "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.76 Mobile Safari/537.36",
+				 "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.79 Safari/537.36",
+				 "Mozilla/5.0 (Linux; U; Android 7.0; zh-cn; MI 5 Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko)Version/4.0 Chrome/37.0.0.0 MQQBrowser/7.1 Mobile Safari/537.36",
+				 "Mozilla/5.0 (Linux; U; Android 6.0.1; zh-CN; F5121 Build/34.0.A.1.247) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/40.0.2214.89 UCBrowser/11.5.1.944 Mobile Safari/537.36",
+							  "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.202 Safari/535.1",
+							  "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.75 Safari/535.7",
+							  "Mozilla/5.0 (Windows NT 6.1; rv:12.0) Gecko/20120403211507 Firefox/12.0",
+							  "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1",
+							  "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6 GTB5",
+							  "Mozilla/5.0 (Windows NT 6.0; WOW64) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.45 Safari/535.19",
+				  ]
+		#self.EngineStart()
+
+	def Set_USER_AGENT(self):
+		ftext = open( "./user_agent.txt", "r" )
+		txtlines = ftext.readlines()
+		ftext.close()
+		agentlist = []
+		for line in txtlines:
+			line = line.strip( '\n' )
+			agentlist.append(line)
+		print( "self.USER_AGENT=",len(agentlist))
+		self.USER_AGENT = agentlist
+		#print self.USER_AGENT
+
+
+	def Get_PROXY_LIST( self ):
+		return self.PROXY_LIST
+
+	def Set_PROXY_LIST(self):
+		'''
+		url = 'http://www.xicidaili.com/nn/1
+		'''
+		urls = ['http://www.xicidaili.com/nn/1', 'http://www.xicidaili.com/nn/2', 'http://www.xicidaili.com/nn/3', 'http://www.xicidaili.com/nn/4', 'http://www.xicidaili.com/nn/5', 'http://www.xicidaili.com/nn/6', 'http://www.xicidaili.com/nn/7', 'http://www.xicidaili.com/nn/8', 'http://www.xicidaili.com/nn/9']
+		proxy_list = [ ]
+		index = 0
+		for url in urls:
+			res = self.getHtmlStringByRequests(url)
+			#self.Write_To_txt( res )
+			soup = BeautifulSoup(res)
+			#soup = BeautifulSoup.BeautifulSoup( open( "./html.txt" ) )
+			ips = soup.findAll('tr')
+
+			for x in range(1, len(ips)):
+				ip = ips[x]
+				tds = ip.findAll("td")
+				#print "*************"
+				Bad = self.Prase_Tag_td_title(tds[6]) + self.Prase_Tag_td_title(tds[7])		# 速度+连接时间,毫秒
+				# index 原始 idx
+				Ip = str( tds[ 1 ].contents[ 0 ] )
+				Port = str( tds[ 2 ].contents[ 0 ] )
+				ProxyType = str(	tds[ 5 ].contents[ 0 ] )
+				#proxy_t = {"Ip": str(tds[1].contents[0]), "Port": str(tds[2].contents[0]), "Type": str(tds[5].contents[0]), "Bad":Bad, "index":idx }
+				ipport = Ip + ":" + Port
+				if (('HTTP' == ProxyType) or ('HTTPS' == ProxyType)):
+					if ('HTTP' == ProxyType):
+						proxies = {"http": "http://" + ipport}
+					else:
+						proxies = {"https": "https://" + ipport}
+					proxy_t = {"index": index, "proxies":proxies, "Bad": Bad, }
+					if ('HTTP' == ProxyType):
+						proxy_list.append( proxy_t )
+						index += 1
+				else:
+					print('Unknow Type', ProxyType,Ip,Port)
+
+			#break;		#for 1
+		self.PROXY_LIST = proxy_list
+		self.ActiveNum = int(3*len(self.PROXY_LIST)/4)  # 最好的3/4
+		print("self.ActiveNum=", self.ActiveNum)
+		print("self.PROXY_LIST=", len(self.PROXY_LIST))
+		return(len(self.PROXY_LIST))
+
+	def Get_headers( self, index, url, Refefer ):
+		#http://www.fynas.com/ua		#手机User-Agent
+		# reuturn headers for requests.get()
+		UserAgent = self.USER_AGENT[index]
+		Host = self.Get_Host( url )
+		if( Host is not None ):
+			if (Host is not None):
+				headers = {	'Host':Host, 'User-Agent': UserAgent, 'Refefer': Refefer}
+			else:
+				headers = {'Host': Host, 'User-Agent': UserAgent }
+		else:
+			if (Host is not None):
+				headers = {'User-Agent': UserAgent, 'Refefer': Refefer}
+			else:
+				headers = {'User-Agent': UserAgent }
+		return headers
+
+	def Get_Host( self, url ):
+		#return Host of url for headers
+		#url = "http://finance.sina.com.cn/realstock/company/sz002720/jsvar.js"		#finance.sina.com.cn
+		#url = "http://hq.sinajs.cn/list=sh600051"		#hq.sinajs.cn
+		#url = 'https://xueqiu.com/S/SH600051'			#xueqiu.com
+		urlstr = url.split( '/' )
+		#print urlstr
+		if(len(urlstr)<2):
+			print( url + ' Get_Host:Not find the Host')
+			return None
+		return urlstr[2]
+
+	def Get_proxy(self,index):
+		# 根据index返回proxy,在最好之列，即返回的proxy的index可能不是输入的index
+		idx = self.Get_idx_by_index(index)
+		if (idx >= self.ActiveNum):  # 不在最好之列，防止代理不可用，而设置了UseLast==True
+			idx =  random.randint( 0, self.ActiveNum )
+		return self.PROXY_LIST[idx]
+
+	def Get_idx_by_index(self,index):
+		# 返回特定index对应的idx（在PROXY_LIST的位置），用于self.PROXY_LIST[idx]访问
+		for idx in range( len( self.PROXY_LIST ) ):
+			if (index == self.PROXY_LIST[ idx ].get( "index" )):
+				return idx
+		return 0
+
+	def Sort_PROXY(self):
+		self.PROXY_LIST.sort(key=lambda obj:obj.get('Bad'), reverse=False)
+
+	def Print_PROXY(self):
+		for proxy in self.PROXY_LIST:
+			print( proxy)
+		print( 'Total:', len(self.PROXY_LIST))
+
+	def Set_Bad_Of_PROXY( self, index_PROXY_LIST, relaytime ):
+		idx = self.Get_idx_by_index(index_PROXY_LIST)
+		self.PROXY_LIST[idx]["Bad"] += relaytime*1000
+		print( 'index',index_PROXY_LIST,self.PROXY_LIST[idx].get("Ip"), self.PROXY_LIST[idx].get("Bad"), relaytime)
+		self.Sort_PROXY()
+
+	def Prase_Tag_td_title(self,tag):
+		'''
+		input:tag == <class 'BeautifulSoup.Tag'>
+		url = 'http://www.xicidaili.com/nn/1
+		速度,连接时间,毫秒
+		'''
+		# print type(tag)					#<class 'BeautifulSoup.Tag'>
+		# div = tag.find("div").attrs		#	<type 'list'>
+		speed = tag.find( "div" ).get( 'title' )  # <type 'unicode'> 5.203秒
+		speed = ''.join( x for x in speed if ord( x ) < 256 )  # 去掉汉字：：：<type 'unicode'> 5.203
+		# print type( speed ), speed		#
+		return float( speed ) * 1000  # <type 'float'> 5.203
+
+	def getHtmlStringByRequests(self,url):
+		#return: <type 'unicode'>
+		#Host:xueqiu.com
+		#Referer:https://xueqiu.com/S/SH600051
+		#headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) chrome/47.0.1453.110 Safari/537.36','Refefer':url}
+		#'User-Agent' : 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.76 Mobile Safari/537.36'
+		#User-Agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.79 Safari/537.36
+		#Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:56.0) Gecko/20100101 Firefox/56.0
+		headers = {
+			"User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36"}
+		try:
+			response = requests.get(url, headers=headers, timeout=0.4)
+			#response.status_code		#200, 404, 301, 302, 500
+		except (IOError) as err:
+			print( 'getHtmlStringByRequests()1 ERROR:', err)
+			time.sleep(random.randint(3, 5))
+			try:
+				response = requests.get(url, headers=headers, timeout=1.2)
+			except (IOError) as err:
+				print( 'getHtmlStringByRequests()2 ERROR:', err)
+				time.sleep(random.randint(8, 16))
+				try:
+					response = requests.get(url, headers=headers, timeout=3.6)
+				except (IOError) as err:
+					print( 'Ruturn None.', err)
+					return None
+		#print type( response.text )  # <type 'unicode'>
+		#print response.text
+		#print type( response.content )  # <type 'str'>
+		return response.text
+
+	def Write_To_txt(self,text):
+		fhtml = codecs.open("./html.txt", "w", 'utf-8')
+		fhtml.write(text)
+		fhtml.close()
+
+################### DO NOT DELETE ##################
+LOCAL_AGENTPOOL = Class_AgentPool()
+LOCAL_AGENTPOOL.EngineStart()
+####################################################
+class Class_Proxy():
+	def Get_Html_String(self, url, Refefer, UseLast=False):
+		# Uselast type:Bool, if True ,use last proxy and headers
+		# return HtmlStr
+		GetRet = LOCAL_AGENTPOOL.Get_Html_String(url, Refefer, UseLast, self.__index_PROXY_LIST, self.__index_USER_AGENT)
+		self.__index_PROXY_LIST = GetRet.get("index_p")
+		self.__index_USER_AGENT = GetRet.get("index_u")
+		return {'status': GetRet.get('status'), 'text': GetRet.get('text')}
+	def Change_Proxy(self):
+		# 必须指定上次使用的代理，这里随便选一个，供下次使用
+		self.__index_PROXY_LIST = LOCAL_AGENTPOOL.Get_Random_index_PROXY_LIST()
+		self.__index_USER_AGENT = LOCAL_AGENTPOOL.Get_Random_index_USER_AGENT()
+	def Get_index_P_U(self):
+		return(self.__index_PROXY_LIST,self.__index_USER_AGENT)
+	############## private ################
+	def __init__(self):
+		# 必须指定上次使用的代理，这里随便选一个，供下次使用
+		self.__index_PROXY_LIST = LOCAL_AGENTPOOL.Get_Random_index_PROXY_LIST()
+		self.__index_USER_AGENT = LOCAL_AGENTPOOL.Get_Random_index_USER_AGENT()
+
+#proxy = Class_Proxy()
+#proxy.Get_Html_String("http://guba.eastmoney.com/news,600051,660380791.html","http://guba.eastmoney.com/list,600051_53.html",True)
+#proxy.Get_Html_String("http://guba.eastmoney.com/news,600051,660380586.html","http://guba.eastmoney.com/list,600051_53.html",False)
+#proxy.Get_Html_String("http://guba.eastmoney.com/news,600051,664342647.html","http://guba.eastmoney.com/list,600051_53.html",True)
+
+#AGENTPOOL.Get_Html_String("http://guba.eastmoney.com/news,600051,660380791.html","http://guba.eastmoney.com/list,600051_53.html",True)
+#AGENTPOOL.Get_Html_String("http://guba.eastmoney.com/news,600051,660380586.html","http://guba.eastmoney.com/list,600051_53.html",False)
+#AGENTPOOL.Get_Html_String("http://guba.eastmoney.com/news,600051,664342647.html","http://guba.eastmoney.com/list,600051_53.html",True)
