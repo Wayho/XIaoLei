@@ -44,7 +44,7 @@ def message_robot(sFromUserName, sContent):
 
 
 ## 相关文档
-
+* [wechatpy](https://github.com/Wayho/wechatpy)
 * [LeanEngine 指南](https://leancloud.cn/docs/leanengine_guide.html)
 * [Python SDK 指南](https://leancloud.cn/docs/python_guide.html)
 * [Python SDK API](https://leancloud.cn/docs/api/python/index.html)
