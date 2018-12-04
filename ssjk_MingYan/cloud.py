@@ -62,8 +62,8 @@ def cmd_prase():
 
 	MingYan = Class_Http_Get_MingYan()
 	#MingYan.Http_Get_MinYan()
-	MingYan.Test()
-	#MingYan.Http_Get_MinJu_All()
+	#MingYan.Test()
+	MingYan.Http_Get_MinJu_All()
 
 	#juzimi.Test()
 	return True

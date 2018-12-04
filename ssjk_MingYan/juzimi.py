@@ -12,9 +12,9 @@ import  os
 
 # local imports
 
-DELAY_BASE = 5
+DELAY_BASE = 8
 
-from functions import Get_Html_String_Use_Private_Proxy,Unset_Private_Proxy,Get_First_Char_Of_Sting
+from functions import Get_Html_String_Use_Private_Proxy,Unset_Private_Proxy,Get_First_Char_Of_Sting,Get_Html_String_Use_phantomjs,Get_Html_String_Use_Local_Proxy
 
 from classwriter import WRITER_CLASS
 from classmingju import MINGJU_CLASS
@@ -71,19 +71,23 @@ class Class_Http_Get_MingYan():
 		print(oWriter)
 		RefererUrl = 'https://www.juzimi.com'
 		Url = oWriter.get('url')
+		iStartPage = oWriter.get('page')
 		#Url = 'https://www.juzimi.com/writer/%E8%AF%97%E7%BB%8F'
-		if(0==oWriter.get('page')):
+		if(0==iStartPage):
 			iPage = self.Http_Prase_Page(Url, RefererUrl,oWriter.get('name'),oWriter.get('country'))
+			WRITER_CLASS.Update_page(oWriter.get('objectId'), 1)
 		else:
-			iPage = self.Http_Prase_Page(Url + '?page=' + str(oWriter.get('page')), RefererUrl, oWriter.get('name'),
+			iPage = self.Http_Prase_Page(Url + '?page=' + str(iStartPage), RefererUrl, oWriter.get('name'),
 			                             oWriter.get('country'))
+			WRITER_CLASS.Update_page(oWriter.get('objectId'), iStartPage+1)
 		print('pages=',iPage)
-		for page in range(1,iPage):
+		for page in range(iStartPage+1,iPage):
 			self.Http_Prase_Page(Url+'?page='+str(page), Url ,oWriter.get('name'), oWriter.get('country'))
-			time.sleep(random.randint(3, 6))
+			WRITER_CLASS.Update_page(oWriter.get('objectId'), page+1)
+			time.sleep(random.randint(12, 16))
 		WRITER_CLASS.Update_active(oWriter.get('objectId'), True)
-		WRITER_CLASS.Update_page(oWriter.get('objectId'), iPage)
-		print('End of Prase')
+		#WRITER_CLASS.Update_page(oWriter.get('objectId'), iPage)
+		print('***************** End of Prase *******************')
 
 	def Test_0(self):
 			RefererUrl = 'https://www.juzimi.com'
@@ -96,7 +100,7 @@ class Class_Http_Get_MingYan():
 			print(oWriter)
 			time.sleep(random.randint(8, 16))
 
-			print('End of Prase')
+			print('***************** End of Prase *******************')
 
 	def Http_Get_MinJu_All(self):
 		while(True):
@@ -105,14 +109,24 @@ class Class_Http_Get_MingYan():
 			print(oWriter)
 			RefererUrl = 'https://www.juzimi.com'
 			Url = oWriter.get('url')
-			#Url = 'https://www.juzimi.com/writer/%E5%AE%8B%E7%8E%89'
-			iPage = self.Http_Prase_Page(Url, RefererUrl, oWriter.get('name'), oWriter.get('country'))
+			iStartPage = oWriter.get('page')
+			# Url = 'https://www.juzimi.com/writer/%E8%AF%97%E7%BB%8F'
+			if (0 == iStartPage):
+				iPage = self.Http_Prase_Page(Url, RefererUrl, oWriter.get('name'), oWriter.get('country'))
+				WRITER_CLASS.Update_page(oWriter.get('objectId'), 1)
+			else:
+				iPage = self.Http_Prase_Page(Url + '?page=' + str(iStartPage), RefererUrl, oWriter.get('name'),
+				                             oWriter.get('country'))
+				WRITER_CLASS.Update_page(oWriter.get('objectId'), iStartPage + 1)
 			print('pages=', iPage)
-			for page in range(1, iPage):
+			time.sleep(random.randint(38, 43))
+			for page in range(iStartPage + 1, iPage):
 				self.Http_Prase_Page(Url + '?page=' + str(page), Url, oWriter.get('name'), oWriter.get('country'))
-				time.sleep(random.randint(2, 5))
+				WRITER_CLASS.Update_page(oWriter.get('objectId'), page + 1)
+				time.sleep(random.randint(62, 68))
 			WRITER_CLASS.Update_active(oWriter.get('objectId'), True)
-			print('End of Prase')
+			# WRITER_CLASS.Update_page(oWriter.get('objectId'), iPage)
+			print('***************** End of Prase *******************')
 		return
 
 
@@ -123,7 +137,9 @@ class Class_Http_Get_MingYan():
 		while(0==len(aMingYan)):
 			id = str(random.randint(0,200))
 			print('request:',Url)
-			Html_Str = Get_Html_String_Use_Private_Proxy(Url, RefererUrl, id)
+			#Html_Str = Get_Html_String_Use_Private_Proxy(Url, RefererUrl, id)
+			Html_Str = Get_Html_String_Use_phantomjs(Url)
+			#Html_Str = Get_Html_String_Use_Local_Proxy(Url)
 			#proxy = Class_Proxy()
 			#Html_Str = proxy.Get_Html_String(Url, RefererUrl, False)
 			print(id, Get_First_Char_Of_Sting(Html_Str,60))

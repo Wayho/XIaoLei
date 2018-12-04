@@ -5,6 +5,12 @@ import requests
 from datetime import datetime, timedelta
 import time
 import random
+import subprocess
+import select
+import codecs
+import psutil
+
+import urllib.request as myurllib
 
 #TIME_START = time.time()
 #time.sleep(1)
@@ -32,6 +38,58 @@ print u'总内存：',info.total
 print u'内存占比：',type(info.percent),info.percent
 print u'cpu个数：',psutil.cpu_count()
 '''
+
+proxy = myurllib.ProxyHandler({'http': '111.225.8.62:9999'})
+auth = myurllib.HTTPBasicAuthHandler()
+opener = myurllib.build_opener(proxy, auth, myurllib.HTTPHandler)
+myurllib.install_opener(opener)
+#print( myurllib.urlopen("http://blog.csdn.net/").read())
+
+def Get_Html_String_Use_Local_Proxy( url ):
+	return myurllib.urlopen(url).read()
+
+def Get_Html_String_Use_phantomjs( url ):
+	OutputShell('phantomjs htmlbody.js ' + url)
+	time.sleep(2)
+	return Load_From_File('body.html')
+
+def Load_From_File(filename):
+	ffile = codecs.open(filename, 'r', 'utf-8')
+	text = ffile.read()
+	ffile.close()
+	return text
+
+def OutputShell( cmd, **params ):
+	print( 'shell:',cmd)
+	result = subprocess.Popen(
+		#[ "ping 127.0.0.1" ],
+		#[ "find /usr" ],
+		[ cmd ],
+		shell=True,
+		stdout=subprocess.PIPE,
+		stderr=subprocess.PIPE
+	)
+	# read date from pipe
+	select_rfds = [ result.stdout, result.stderr ]
+	while len( select_rfds ) > 0:
+		(rfds, wfds, efds) = select.select( select_rfds, [ ], [ ] ) #select函数阻塞进程，直到select_rfds中的套接字被触发
+		if result.stdout in rfds:
+			readbuf_msg = result.stdout.readline()      #行缓冲
+			if len( readbuf_msg ) == 0:
+				select_rfds.remove( result.stdout )     #result.stdout需要remove，否则进程不会结束
+			else:
+				print( readbuf_msg)
+
+		if result.stderr in rfds:
+			readbuf_errmsg = result.stderr.readline()
+			if len( readbuf_errmsg ) == 0:
+				select_rfds.remove( result.stderr )     #result.stderr，否则进程不会结束
+			else:
+				print( readbuf_errmsg)
+	result.wait() # 等待字进程结束( 等待shell命令结束 )
+	#print result.returncode
+	##(stdoutMsg,stderrMsg) = result .communicate()#非阻塞时读法.
+	return result.returncode
 
 def Is_Dealday(theday):
 	#theday: 无需注意是否是00：00
